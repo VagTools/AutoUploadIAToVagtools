@@ -6,6 +6,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Windows.Forms;
 using AutoUploadIAToVagtools.Entity;
+using IniParser;
+using IniParser.Model;
 using Newtonsoft.Json;
 
 namespace AutoUploadIAToVagtools
@@ -22,6 +24,31 @@ namespace AutoUploadIAToVagtools
         public static string _tokenUrl = "https://vagtools.com/api/auth/token";
         public static string _uploadUrl = "https://vagtools.com/api/dataset/files/upload";
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            var parser = new FileIniDataParser();
+            IniData data;
+            string configPath = @"C:\Windows\INF\vagtools.ini";
+            if (!File.Exists(configPath))
+            {
+                data = new IniData();
+                data["Account"]["username"] = ""; // 设置默认值  
+                data["Account"]["password"] = ""; // 设置其他默认值  
+                // 将数据写入到 config.ini 文件  
+                parser.WriteFile(configPath, data);
+            } 
+            else
+            {
+                data = parser.ReadFile(@"C:\Windows\INF\vagtools.ini");
+                if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
+                {
+                    this.userNameTextBox.Text = data["Account"]["username"];
+                    this.passwordTextBox.Text = data["Account"]["password"];
+                    loginButton_Click(sender, e);
+                }
+            }
+        }
+
         private void loginButton_Click(object sender, EventArgs e)
         {
             string username = this.userNameTextBox.Text;
@@ -36,8 +63,15 @@ namespace AutoUploadIAToVagtools
             if (token != null)
             {
                 this.tokenTextBox.Text = token.token;
+                this.loginButton.Enabled = false;
                 if (!string.IsNullOrEmpty(this.tokenTextBox.Text))
                 {
+                    var parser = new FileIniDataParser();
+                    IniData data = parser.ReadFile(@"C:\Windows\INF\vagtools.ini");
+                    // 写入数据  
+                    data["Account"]["username"] = username;
+                    data["Account"]["password"] = password;
+                    parser.WriteFile(@"C:\Windows\INF\vagtools.ini", data);
                     this.uploadButton.Enabled = true;
                 }
             }
@@ -136,6 +170,23 @@ namespace AutoUploadIAToVagtools
             else
             {
                 MessageBox.Show(responseBody);
+            }
+        }
+
+        private void selectButton_Click(object sender, EventArgs e)
+        {
+            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
+            {
+                folderBrowserDialog.Description = "请选择DMS2文件夹的位置 | VagTools.com"; // 对话框描述  
+                folderBrowserDialog.ShowNewFolderButton = true; // 允许新建文件夹  
+                folderBrowserDialog.RootFolder = Environment.SpecialFolder.MyComputer; // 设置根目录  
+
+                // 显示对话框并检查用户是否选择了文件夹  
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // 将选择的文件夹路径显示在文本框中  
+                    this.dms2PathTextBox.Text = folderBrowserDialog.SelectedPath;
+                }
             }
         }
     }

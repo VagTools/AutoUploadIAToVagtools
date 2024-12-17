@@ -41,6 +41,7 @@
             this.dms2PathTextBox = new System.Windows.Forms.TextBox();
             this.uploadButton = new System.Windows.Forms.Button();
             this.shareCheckBox = new System.Windows.Forms.CheckBox();
+            this.selectButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -132,9 +133,10 @@
             // 
             // dms2PathTextBox
             // 
-            this.dms2PathTextBox.Location = new System.Drawing.Point(85, 181);
+            this.dms2PathTextBox.Enabled = false;
+            this.dms2PathTextBox.Location = new System.Drawing.Point(81, 181);
             this.dms2PathTextBox.Name = "dms2PathTextBox";
-            this.dms2PathTextBox.Size = new System.Drawing.Size(530, 20);
+            this.dms2PathTextBox.Size = new System.Drawing.Size(454, 20);
             this.dms2PathTextBox.TabIndex = 7;
             // 
             // uploadButton
@@ -157,11 +159,22 @@
             this.shareCheckBox.Text = "参数私有化, 不会奖励积分";
             this.shareCheckBox.UseVisualStyleBackColor = true;
             // 
+            // selectButton
+            // 
+            this.selectButton.Location = new System.Drawing.Point(540, 181);
+            this.selectButton.Name = "selectButton";
+            this.selectButton.Size = new System.Drawing.Size(75, 23);
+            this.selectButton.TabIndex = 10;
+            this.selectButton.Text = "浏览";
+            this.selectButton.UseVisualStyleBackColor = true;
+            this.selectButton.Click += new System.EventHandler(this.selectButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(630, 265);
+            this.Controls.Add(this.selectButton);
             this.Controls.Add(this.shareCheckBox);
             this.Controls.Add(this.uploadButton);
             this.Controls.Add(this.dms2PathTextBox);
@@ -174,6 +187,7 @@
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Auto Upload IA To VagTools.com";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -195,6 +209,7 @@
         private System.Windows.Forms.TextBox dms2PathTextBox;
         private System.Windows.Forms.Button uploadButton;
         private System.Windows.Forms.CheckBox shareCheckBox;
+        private System.Windows.Forms.Button selectButton;
     }
 }
 
