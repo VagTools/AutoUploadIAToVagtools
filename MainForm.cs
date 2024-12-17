@@ -64,6 +64,8 @@ namespace AutoUploadIAToVagtools
             {
                 this.tokenTextBox.Text = token.token;
                 this.loginButton.Enabled = false;
+                this.userNameTextBox.Enabled = false;
+                this.passwordTextBox.Enabled = false;
                 if (!string.IsNullOrEmpty(this.tokenTextBox.Text))
                 {
                     var parser = new FileIniDataParser();
