@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Windows.Forms;
 using AutoUploadIAToVagtools.Entity;
@@ -17,8 +19,8 @@ namespace AutoUploadIAToVagtools
             InitializeComponent();
         }
 
-        public readonly static string _tokenUrl = "https://vagtools.com/api/auth/token";
-        public readonly static string _uoloadUrl = "https://vagtools.com/api/system/diagnostic-report/upload";
+        public static string _tokenUrl = "https://vagtools.com/api/auth/token";
+        public static string _uploadUrl = "https://vagtools.com/api/dataset/files/upload";
 
         private void loginButton_Click(object sender, EventArgs e)
         {
@@ -30,10 +32,14 @@ namespace AutoUploadIAToVagtools
             tokenDto.password = password;
             string jsonData = JsonConvert.SerializeObject(tokenDto);
             Dictionary<string, string> headers = new Dictionary<string, string>();
-            Token token = doPost<Token>(_tokenUrl, headers, jsonData, "application/json", 30);
+            Token token = doPost<Token>(_tokenUrl, headers, jsonData, "application/json", 60);
             if (token != null)
             {
                 this.tokenTextBox.Text = token.token;
+                if (!string.IsNullOrEmpty(this.tokenTextBox.Text))
+                {
+                    this.uploadButton.Enabled = true;
+                }
             }
 
         }
@@ -77,6 +83,10 @@ namespace AutoUploadIAToVagtools
             }
         }
 
+        
+
+        
+
         protected static HttpClient getDefaultHttpClient(Dictionary<string, string> headers, int timeOut = 30)
         {
             HttpClientHandler httpClientHander = new HttpClientHandler();
@@ -93,9 +103,53 @@ namespace AutoUploadIAToVagtools
             return client;
         }
 
-        private void uploadButton_Click(object sender, EventArgs e)
+        private async void uploadButton_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("参数私有化: " + this.shareCheckBox.Checked) ;
+            HttpResponseMessage response = null;
+            string responseBody = string.Empty;
+            string token = this.tokenTextBox.Text;
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            headers.Add("Authorization", "Bearer " + token);
+            using (var formData = new MultipartFormDataContent())
+            {
+                var files = Directory.GetFiles(this.dms2PathTextBox.Text);
+                foreach (var file in files)
+                {
+                    var fileStream = new FileStream(file, FileMode.Open);
+                    var fileContent = new StreamContent(fileStream);
+                    fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                    {
+                        Name = "files",
+                        FileName = Path.GetFileName(file)
+                    };
+                    formData.Add(fileContent);
+                }
+                formData.Add(new StringContent(this.shareCheckBox.Checked.ToString()), "share");
+                HttpClient client = getDefaultHttpClient(headers, 60);
+                response = await client.PostAsync(_uploadUrl, formData);
+                responseBody = await response.Content.ReadAsStringAsync();
+            }
+            if (response.IsSuccessStatusCode)
+            {
+                MessageBox.Show("上传成功!");
+            }
+            else
+            {
+                MessageBox.Show(responseBody);
+            }
+        }
+    }
+
+    public static class JsonExtends
+    {
+        public static T ToEntity<T>(this string val)
+        {
+            return JsonConvert.DeserializeObject<T>(val);
+        }
+
+        public static string ToJson<T>(this T entity, Formatting formatting = Formatting.None)
+        {
+            return JsonConvert.SerializeObject(entity, formatting);
         }
     }
 }

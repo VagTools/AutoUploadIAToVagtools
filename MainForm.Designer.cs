@@ -38,7 +38,7 @@
             this.tokenTextBox = new System.Windows.Forms.TextBox();
             this.loginButton = new System.Windows.Forms.Button();
             this.dms2Label = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.dms2PathTextBox = new System.Windows.Forms.TextBox();
             this.uploadButton = new System.Windows.Forms.Button();
             this.shareCheckBox = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
@@ -130,16 +130,16 @@
             this.dms2Label.TabIndex = 5;
             this.dms2Label.Text = "DMS2 位置:";
             // 
-            // textBox2
+            // dms2PathTextBox
             // 
-            this.textBox2.Location = new System.Drawing.Point(85, 181);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(530, 20);
-            this.textBox2.TabIndex = 7;
+            this.dms2PathTextBox.Location = new System.Drawing.Point(85, 181);
+            this.dms2PathTextBox.Name = "dms2PathTextBox";
+            this.dms2PathTextBox.Size = new System.Drawing.Size(530, 20);
+            this.dms2PathTextBox.TabIndex = 7;
             // 
             // uploadButton
             // 
-            this.uploadButton.Location = new System.Drawing.Point(540, 220);
+            this.uploadButton.Location = new System.Drawing.Point(540, 218);
             this.uploadButton.Name = "uploadButton";
             this.uploadButton.Size = new System.Drawing.Size(75, 28);
             this.uploadButton.TabIndex = 8;
@@ -164,7 +164,7 @@
             this.ClientSize = new System.Drawing.Size(630, 265);
             this.Controls.Add(this.shareCheckBox);
             this.Controls.Add(this.uploadButton);
-            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.dms2PathTextBox);
             this.Controls.Add(this.dms2Label);
             this.Controls.Add(this.groupBox1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -192,7 +192,7 @@
         private System.Windows.Forms.TextBox tokenTextBox;
         private System.Windows.Forms.Label TokenLabel;
         private System.Windows.Forms.Label dms2Label;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox dms2PathTextBox;
         private System.Windows.Forms.Button uploadButton;
         private System.Windows.Forms.CheckBox shareCheckBox;
     }
