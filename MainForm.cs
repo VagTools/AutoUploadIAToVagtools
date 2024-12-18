@@ -16,6 +16,7 @@ namespace AutoUploadIAToVagtools
 
     public partial class MainForm : Form
     {
+
         public MainForm()
         {
             InitializeComponent();
@@ -44,6 +45,9 @@ namespace AutoUploadIAToVagtools
                 {
                     this.userNameTextBox.Text = data["Account"]["username"];
                     this.passwordTextBox.Text = data["Account"]["password"];
+
+                    this.dms2PathTextBox.Text = data["DMS2"]["PATH"];
+
                     loginButton_Click(sender, e);
                 }
             }
@@ -141,6 +145,12 @@ namespace AutoUploadIAToVagtools
 
         private async void uploadButton_Click(object sender, EventArgs e)
         {
+            var parser = new FileIniDataParser();
+            IniData data = parser.ReadFile(@"C:\Windows\INF\vagtools.ini");
+            // 写入数据  
+            data["DMS2"]["PATH"] = this.dms2PathTextBox.Text;
+            parser.WriteFile(@"C:\Windows\INF\vagtools.ini", data);
+
             HttpResponseMessage response = null;
             string responseBody = string.Empty;
             string token = this.tokenTextBox.Text;
