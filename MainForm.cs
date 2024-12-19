@@ -170,7 +170,14 @@ namespace AutoUploadIAToVagtools
                     };
                     formData.Add(fileContent);
                 }
-                formData.Add(new StringContent(this.shareCheckBox.Checked.ToString()), "share");
+                if (this.shareCheckBox.Checked)
+                {
+                    formData.Add(new StringContent("PRIVATE"), "share");
+                }
+                else
+                {
+                    formData.Add(new StringContent("PUBLIC"), "share");
+                }
                 HttpClient client = getDefaultHttpClient(headers, 60);
                 response = await client.PostAsync(_uploadUrl, formData);
                 responseBody = await response.Content.ReadAsStringAsync();
