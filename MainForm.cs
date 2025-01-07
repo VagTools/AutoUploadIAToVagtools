@@ -165,7 +165,7 @@ namespace AutoUploadIAToVagtools
 
         
 
-        protected static HttpClient getDefaultHttpClient(Dictionary<string, string> headers, int timeOut = 30)
+        protected static HttpClient getDefaultHttpClient(Dictionary<string, string> headers, int timeOut = 600)
         {
             HttpClientHandler httpClientHander = new HttpClientHandler();
             httpClientHander.ServerCertificateCustomValidationCallback = delegate { return true; };
@@ -214,7 +214,7 @@ namespace AutoUploadIAToVagtools
                 {
                     formData.Add(new StringContent("PUBLIC"), "share");
                 }
-                HttpClient client = getDefaultHttpClient(headers, 60);
+                HttpClient client = getDefaultHttpClient(headers, 600);
                 response = await client.PostAsync(_uploadUrl, formData);
                 responseBody = await response.Content.ReadAsStringAsync();
             }
