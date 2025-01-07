@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -27,7 +28,18 @@ namespace AutoUploadIAToVagtools
             InitializeComponent();
             if (data == null)
             {
-                data = parser.ReadFile(configPath);
+                if (!File.Exists(configPath))
+                {
+                    data = new IniData();
+                    data["Account"]["username"] = ""; // 设置默认值  
+                    data["Account"]["password"] = ""; // 设置其他默认值
+                    data["TOKEN"]["token"] = "";
+                    data["TOKEN"]["tokenExpirationtime"] = "";
+                    data["DMS2"]["PATH"] = "";
+                    // 将数据写入到 config.ini 文件  
+                    parser.WriteFile(configPath, data);
+                }
+                data = parser.ReadFile(configPath);       
             }
         }
 
@@ -35,56 +47,45 @@ namespace AutoUploadIAToVagtools
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            if (!File.Exists(configPath))
+            string token = data["TOKEN"]["token"];
+            string tokenExpirationTime = data["TOKEN"]["tokenExpirationtime"];
+            if (!string.IsNullOrEmpty(token))
             {
-                data = new IniData();
-                data["Account"]["username"] = ""; // 设置默认值  
-                data["Account"]["password"] = ""; // 设置其他默认值
-                data["TOKEN"]["token"] = "";
-                data["TOKEN"]["tokenExpirationtime"] = "";
-                // 将数据写入到 config.ini 文件  
-                parser.WriteFile(configPath, data);
-            }
-            else
-            {
-                string token = data["TOKEN"]["token"];
-                string tokenExpirationTime = data["TOKEN"]["tokenExpirationtime"];
-                if (!string.IsNullOrEmpty(token))
+                DateTime tokenExpirationDateTime;
+                DateTime now = DateTime.Now;
+                if (DateTime.TryParse(tokenExpirationTime, out tokenExpirationDateTime))
                 {
-                    DateTime tokenExpirationDateTime;
-                    DateTime now = DateTime.Now;
-                    if (DateTime.TryParse(tokenExpirationTime, out tokenExpirationDateTime))
+                    if (DateTime.Compare(tokenExpirationDateTime, now) > 0)
                     {
-                        if (DateTime.Compare(tokenExpirationDateTime, now) > 0)
-                        {
-                            this.userNameTextBox.Text = data["Account"]["username"];
-                            this.passwordTextBox.Text = data["Account"]["password"];
-                            this.dms2PathTextBox.Text = data["DMS2"]["PATH"];
-                            this.tokenTextBox.Text = token;
-                        }
-                        else
-                        {
-                            if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
-                            {
-                                this.userNameTextBox.Text = data["Account"]["username"];
-                                this.passwordTextBox.Text = data["Account"]["password"];
-                                loginButton_Click(sender, e);
-                            }
-                        }
+                        this.userNameTextBox.Text = data["Account"]["username"];
+                        this.passwordTextBox.Text = data["Account"]["password"];
+                        this.dms2PathTextBox.Text = data["DMS2"]["PATH"];
+                        this.tokenTextBox.Text = token;
+                        this.userNameTextBox.Enabled = false;
+                        this.passwordTextBox.Enabled = false;
                     }
                     else
                     {
-                        Console.WriteLine("字符串转换失败.");
+                        if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
+                        {
+                            this.userNameTextBox.Text = data["Account"]["username"];
+                            this.passwordTextBox.Text = data["Account"]["password"];
+                            loginButton_Click(sender, e);
+                        }
                     }
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
-                    {
-                        this.userNameTextBox.Text = data["Account"]["username"];
-                        this.passwordTextBox.Text = data["Account"]["password"];
-                        loginButton_Click(sender, e);
-                    }
+                    Console.WriteLine("字符串转换失败.");
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
+                {
+                    this.userNameTextBox.Text = data["Account"]["username"];
+                    this.passwordTextBox.Text = data["Account"]["password"];
+                    loginButton_Click(sender, e);
                 }
             }
         }
