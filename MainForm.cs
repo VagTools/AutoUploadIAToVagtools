@@ -16,39 +16,75 @@ namespace AutoUploadIAToVagtools
 
     public partial class MainForm : Form
     {
+        private static readonly string _tokenUrl = "https://vagtools.com/api/auth/token";
+        private static readonly string _uploadUrl = "https://vagtools.com/api/dataset/files/upload";
+        private static readonly string configPath = @"C:\Windows\INF\vagtools.ini";
+        private static readonly FileIniDataParser parser = new FileIniDataParser();
+        private static IniData data;
 
         public MainForm()
         {
             InitializeComponent();
+            if (data == null)
+            {
+                data = parser.ReadFile(configPath);
+            }
         }
 
-        public static string _tokenUrl = "https://vagtools.com/api/auth/token";
-        public static string _uploadUrl = "https://vagtools.com/api/dataset/files/upload";
+
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            var parser = new FileIniDataParser();
-            IniData data;
-            string configPath = @"C:\Windows\INF\vagtools.ini";
             if (!File.Exists(configPath))
             {
                 data = new IniData();
                 data["Account"]["username"] = ""; // 设置默认值  
-                data["Account"]["password"] = ""; // 设置其他默认值  
+                data["Account"]["password"] = ""; // 设置其他默认值
+                data["TOKEN"]["token"] = "";
+                data["TOKEN"]["tokenExpirationtime"] = "";
                 // 将数据写入到 config.ini 文件  
                 parser.WriteFile(configPath, data);
-            } 
+            }
             else
             {
-                data = parser.ReadFile(@"C:\Windows\INF\vagtools.ini");
-                if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
+                string token = data["TOKEN"]["token"];
+                string tokenExpirationTime = data["TOKEN"]["tokenExpirationtime"];
+                if (!string.IsNullOrEmpty(token))
                 {
-                    this.userNameTextBox.Text = data["Account"]["username"];
-                    this.passwordTextBox.Text = data["Account"]["password"];
-
-                    this.dms2PathTextBox.Text = data["DMS2"]["PATH"];
-
-                    loginButton_Click(sender, e);
+                    DateTime tokenExpirationDateTime;
+                    DateTime now = DateTime.Now;
+                    if (DateTime.TryParse(tokenExpirationTime, out tokenExpirationDateTime))
+                    {
+                        if (DateTime.Compare(tokenExpirationDateTime, now) > 0)
+                        {
+                            this.userNameTextBox.Text = data["Account"]["username"];
+                            this.passwordTextBox.Text = data["Account"]["password"];
+                            this.dms2PathTextBox.Text = data["DMS2"]["PATH"];
+                            this.tokenTextBox.Text = token;
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
+                            {
+                                this.userNameTextBox.Text = data["Account"]["username"];
+                                this.passwordTextBox.Text = data["Account"]["password"];
+                                loginButton_Click(sender, e);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("字符串转换失败.");
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(data["Account"]["username"]) && !string.IsNullOrEmpty(data["Account"]["password"]))
+                    {
+                        this.userNameTextBox.Text = data["Account"]["username"];
+                        this.passwordTextBox.Text = data["Account"]["password"];
+                        loginButton_Click(sender, e);
+                    }
                 }
             }
         }
@@ -63,7 +99,7 @@ namespace AutoUploadIAToVagtools
             tokenDto.password = password;
             string jsonData = JsonConvert.SerializeObject(tokenDto);
             Dictionary<string, string> headers = new Dictionary<string, string>();
-            Token token = doPost<Token>(_tokenUrl, headers, jsonData, "application/json", 60);
+            Token token = doPost<Token>(_tokenUrl, headers, jsonData, "application/json", 600);
             if (token != null)
             {
                 this.tokenTextBox.Text = token.token;
@@ -72,13 +108,14 @@ namespace AutoUploadIAToVagtools
                 this.passwordTextBox.Enabled = false;
                 if (!string.IsNullOrEmpty(this.tokenTextBox.Text))
                 {
-                    var parser = new FileIniDataParser();
-                    IniData data = parser.ReadFile(@"C:\Windows\INF\vagtools.ini");
+                    DateTime currentTime = DateTime.Now;
+                    DateTime after6DayTime = currentTime.AddDays(6);
                     // 写入数据  
                     data["Account"]["username"] = username;
                     data["Account"]["password"] = password;
-                    parser.WriteFile(@"C:\Windows\INF\vagtools.ini", data);
-                    this.uploadButton.Enabled = true;
+                    data["TOKEN"]["token"] = token.token;
+                    data["TOKEN"]["tokenExpirationtime"] = after6DayTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    parser.WriteFile(configPath, data);
                 }
             }
 
@@ -145,11 +182,9 @@ namespace AutoUploadIAToVagtools
 
         private async void uploadButton_Click(object sender, EventArgs e)
         {
-            var parser = new FileIniDataParser();
-            IniData data = parser.ReadFile(@"C:\Windows\INF\vagtools.ini");
             // 写入数据  
             data["DMS2"]["PATH"] = this.dms2PathTextBox.Text;
-            parser.WriteFile(@"C:\Windows\INF\vagtools.ini", data);
+            parser.WriteFile(configPath, data);
 
             HttpResponseMessage response = null;
             string responseBody = string.Empty;

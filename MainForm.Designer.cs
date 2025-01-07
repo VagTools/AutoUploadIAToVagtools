@@ -133,7 +133,6 @@
             // 
             // dms2PathTextBox
             // 
-            this.dms2PathTextBox.Enabled = false;
             this.dms2PathTextBox.Location = new System.Drawing.Point(81, 181);
             this.dms2PathTextBox.Name = "dms2PathTextBox";
             this.dms2PathTextBox.Size = new System.Drawing.Size(454, 20);
